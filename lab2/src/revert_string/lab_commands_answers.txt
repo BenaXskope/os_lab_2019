@@ -1,0 +1,54 @@
+Object file - файл с промежуточным представлением отдельного модуля программы, полученный в результате обработки исходного кода компилятором.
+
+Position-independent code(PIC) - В вычислениях позиционно-независимый код или позиционно-независимый исполняемый файл - это корпус машинного кода, который,
+будучи размещенным где-то в первичной памяти, выполняется правильно независимо от его абсолютного адреса.
+
+A static library is basically a set of object files that were copied into a single file with the suffix .a.
+The static file is created with the archiver(ar).
+При статической линковке все подключённые к проекту библиотеки .lib вшиваются в исполняемый файл, для большей автономности программы.
+Статическая библиотека - (*.a) собрана для непосредственного встраивания в Ваш исполняемый файл. Она просто будет помещена в соответствии с указанием linker'а.
+With the static library, we can statically link main.o with the library.
+The -L flag indicates (a non standard) directory where the libraries can be found.
+The -l flag indicates the name of the library. Note, that it assumes the library to start with lib and end with .o (so lib and .o must not be specified)
+Example: gcc   bin/main.o  -Lbin/static -ltq84 -o bin/statically-linked
+The created executable bin/statically-linked is not dependent on any other object file or library. It can be distributed without the .a file or the .o files.
+It can be executed on the shell like so: ./bin/statically-linked
+
+Shared library - are libraries that are loaded by programs when they start.
+При динамической линковке все подключённые к проекту библиотеки носятся отдельно от исполняемого файла, вместе с ним, во имя концепции модульности.
+Динамическая библиотека - (*.so) - будет просто подключаться как link на референс и не попадет в бинарь. Будет лишь указание где брать референс на тот или иной функционал.
+Usually located in /usr/local/lib.
+A shared library is created with GCC's -shared flag and naming the resultant file with the suffix .so
+Example: gcc -shared bin/shared/add.o bin/shared/answer.o -o bin/shared/libtq84.so
+
+
+As long as the shared library is not installed in a default location (such as /usr/lib), we must indicate where it is found.
+This is possible with the LD_LIBRARY_PATH environment variable.
+В специальной переменной среды LD_LIBRARY_PATH перечисляются все каталоги содержащие пользовательские динамические библиотеки
+
+-shared: flag создаёт разделяемую библиотеку (динамическую)
+-L: flag indicates (a non standard) directory where the libraries can be found.
+The -l flag indicates the name of the library.
+Object files for the shared library need to be compiled with the -fPIC flag (PIC = position independent code).
+-o: flag creates an Object file
+ar: is the archiver. It is used to create static libraries
+
+-c means to create an intermediary object file. This flag doesn`t link anything
+
+
+
+
+Commands:
+gcc main.c revert_string.c -o lab_rev_compile
+./lab_rev_compile abcde
+
+Задание 3
+gcc -c main.c -o bin/main.o
+gcc -c revert_string.c -o bin/static/revert_string.o
+gcc bin/main.o -L bin/static -lrevstat -o bin/statically-linked
+./bin/statically-linked aabb
+
+gcc -c -fPIC revert_string.c -o bin/shared/revert_string.o
+gcc -shared bin/shared/revert_string.o -o bin/shared/librevdyn.so
+gcc  bin/main.o -Lbin/shared -lrevdyn -o bin/use-shared-library
+LD_LIBRARY_PATH=$(pwd)/bin/shared bin/use-shared-library aabb

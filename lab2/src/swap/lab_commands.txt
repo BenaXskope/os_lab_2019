@@ -1,0 +1,2 @@
+gcc main.c swap.c -o compil_lab_ex
+./compil_lab_ex
