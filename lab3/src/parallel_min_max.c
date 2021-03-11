@@ -43,21 +43,21 @@ int main(int argc, char **argv) {
             
             if (seed <= 0) {
                 printf("seed must be a positive integer number");
-                seed = -1;
+                return 1;
             }
             break;
           case 1:
             array_size = atoi(optarg);
             if (array_size <= 0) {
                 printf("array_size must be a positive integer number");
-                array_size = -1;
+                return 1;
             }
             break;
           case 2:
             pnum = atoi(optarg);
             if (pnum <= 0) {
                 printf("array_size must be a positive integer number");
-                pnum = -1;
+                return 1;
             }
             break;
           case 3:
@@ -98,52 +98,93 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
 
-  for (int i = 0; i < pnum; i++) {
+  int n = array_size / pnum;
+  int pipefd[2];
+  pipe(pipefd);
+
+  for (int i = 0; i < pnum; i++)
+  {
     pid_t child_pid = fork();
-    if (child_pid >= 0) {
-      // successful fork
+    if (child_pid >= 0)
+    {
       active_child_processes += 1;
-      if (child_pid == 0) {
-        // child process
-
-        // parallel somehow
-
-        if (with_files) {
-          // use files here
-        } else {
-          // use pipe here
+      if (child_pid == 0)
+      {
+        struct MinMax min_max;
+        min_max = GetMinMax(array, (unsigned int)i * n, (unsigned int)(i + 1) * n);
+        if (with_files)
+        {
+          FILE *fp;
+          if (i == 0)
+          {
+            fp = fopen("output.txt", "w");
+          }
+          else
+          {
+            fp = fopen("output.txt", "a");
+          }
+          fprintf(fp, "%d %d\n", min_max.min, min_max.max);
+          fclose(fp);
+        }
+        else
+        {
+          write(pipefd[1], &min_max, sizeof(struct MinMax));
         }
         return 0;
       }
-
-    } else {
+    }
+    else
+    {
       printf("Fork failed!\n");
       return 1;
     }
   }
 
-  while (active_child_processes > 0) {
-    // your code here
-
+  while (active_child_processes > 0)
+  {
+    wait(NULL);
     active_child_processes -= 1;
   }
 
   struct MinMax min_max;
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
-
-  for (int i = 0; i < pnum; i++) {
+  
+  for (int i = 0; i < pnum; i++)
+  {
     int min = INT_MAX;
     int max = INT_MIN;
 
-    if (with_files) {
-      // read from files
-    } else {
-      // read from pipes
+    if (with_files)
+    {
+      struct MinMax min_max;
+      FILE *fp;
+      int j;
+      fp = fopen("output.txt", "r");
+      for (j = 0; j < i || (i == 0 && j <= i); j++)
+      {
+        fscanf(fp, "%d %d", &min_max.min, &min_max.max);
+        if (min < min_max.min)
+          min_max.min = min;
+        if (max > min_max.max)
+          min_max.max = max;
+      }
+      fclose(fp);
+      min = min_max.min;
+      max = min_max.max;
+    }
+    else
+    {
+      struct MinMax min_max;
+      read(pipefd[0], &min_max, sizeof(struct MinMax));
+      min = min_max.min;
+      max = min_max.max;
     }
 
-    if (min < min_max.min) min_max.min = min;
-    if (max > min_max.max) min_max.max = max;
+    if (min < min_max.min)
+      min_max.min = min;
+    if (max > min_max.max)
+      min_max.max = max;
   }
 
   struct timeval finish_time;
