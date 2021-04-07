@@ -1,0 +1,118 @@
+#Task 1
+#Kill
+The kill() system call can be used to send any signal to any
+       process group or process.
+
+       If pid is positive, then signal sig is sent to the process with
+       the ID specified by pid.
+
+       If pid equals 0, then sig is sent to every process in the process
+       group of the calling process.
+
+       If pid equals -1, then sig is sent to every process for which the
+       calling process has permission to send signals, except for
+       process 1 (init), but see below.
+
+       If pid is less than -1, then sig is sent to every process in the
+       process group whose ID is -pid.
+
+       If sig is 0, then no signal is sent, but existence and permission
+       checks are still performed; this can be used to check for the
+       existence of a process ID or process group ID that the caller is
+       permitted to signal.
+    
+#wait
+The wait() system call suspends execution of the calling process until one of its children terminates. The call wait(&status) is equivalent to:
+waitpid(-1, &status, 0);
+
+#signal
+signal() sets the disposition of the signal signum to handler,
+       which is either SIG_IGN, SIG_DFL, or the address of a programmer-
+       defined function (a "signal handler").
+
+#alarm
+ alarm() arranges for a SIGALRM signal to be delivered to the
+       calling process in seconds seconds.
+
+#Taks 2
+Процесс-зомби — дочерний процесс в Unix-системе, завершивший своё выполнение, но ещё присутствующий в списке процессов операционной системы,
+чтобы дать родительскому процессу считать код завершения.
+Процесс при завершении (как нормальном, так и в результате не обрабатываемого сигнала) освобождает все свои ресурсы и становится «зомби» — пустой записью в таблице процессов, хранящей статус завершения предназначенный для чтения родительским процессом.
+
+Зомби процесс существует до тех пор, пока родительский процесс не прочитает его статус с помощью системного вызова wait(), 
+в результате чего запись в таблице процессов будет освобождена.
+При завершении процесса система уведомляет родительский процесс о завершении дочернего с помощью сигнала SIGCHLD, 
+таким образом может быть удобно(но не обязательно) осуществлять вызов wait() в обработчике данного сигнала.
+
+Zombie
+          processes are marked as <defunct> in ps listings.
+
+          If the parent of a child has not disowned the child and the
+          parent dies before collecting the child's death certificate,
+          the child is sent to the state orphanage.  As long as the
+          parent is alive and the child was not disowned, when a child
+          tries to die, the zombie child remains around until the
+          parent finally collects its death certificate.  The state
+          orphanage, process 1 a.k.a. /etc/init, is the second process
+          created after the system is booted and has several principal
+          functions: starting and in some cases maintaining the system
+          daemons and waiting for its children to die.  It is given
+          the job of waiting for the deaths of orphaned children as
+          well.  This allows zombie children to be put to rest.
+
+#Task 3
+The addresses of these symbols indicate the end of various program segments:
+
+etext
+This is the first address past the end of the text segment (the program code).
+
+edata
+This is the first address past the end of the initialized data segment.
+
+end
+This is the first address past the end of the uninitialized data segment (also known as the BSS segment).
+
+Address etext:   4009F5 
+Address edata:   601068 
+Address end  :   6010A0 
+ID main          is at virtual address:   400786 // etext
+ID showit        is at virtual address:   4008B4 // extxt
+ID cptr          is at virtual address:   601060 //edata
+ID buffer1       is at virtual address:   601080 //edata
+ID i     is at virtual address: 19636F2C //stack
+A demonstration
+ID buffer2       is at virtual address: 19636F08 // stack
+Alocated memory at 178B6B0 // heap
+This message is output by the function showit()
+
+#task5
+The POSIX thread libraries are a standards based thread API for C/C++. It allows one to spawn a new concurrent process flow.
+It is most effective on multi-processor or multi-core systems where the process flow can be scheduled to run on another processor
+thus gaining speed through parallel or distributed processing. Threads require less overhead than "forking" or spawning a new process
+because the system does not initialize a new system virtual memory space and environment for the process. While most effective on a multiprocessor system,
+gains are also found on uniprocessor systems which exploit latency in I/O and other system functions which may halt process execution.
+(One thread may execute while another is waiting for I/O or some other system latency.) Parallel programming technologies such as MPI and PVM
+are used in a distributed computing environment while threads are limited to a single computer system. All threads within a process share the same address space.
+A thread is spawned by defining a function and it's arguments which will be processed in the thread. The purpose of using the POSIX thread library in your software 
+is to execute software faster.
+
+Thread Synchronization:
+The threads library provides three synchronization mechanisms:
+
+mutexes - Mutual exclusion lock: Block access to variables by other threads. This enforces exclusive access by a thread to a variable or set of variables.
+joins - Make a thread wait till others are complete (terminated).
+condition variables - data type pthread_cond_t
+
+Mutexes:
+Mutexes are used to prevent data inconsistencies due to race conditions. 
+A race condition often occurs when two or more threads need to perform operations on the same memory area, 
+but the results of computations depends on the order in which these operations are performed. Mutexes are used for serializing shared resources. 
+Anytime a global resource is accessed by more than one thread the resource should have a Mutex associated with it. One can apply a mutex to protect a segment 
+of memory ("critical region") from other threads. Mutexes can be applied only to threads in a single process and do not work between processes as do semaphores.
+
+Joins:
+A join is performed when one wants to wait for a thread to finish. 
+A thread calling routine may launch multiple threads then wait for them to finish to get the results. One wait for the completion of the threads with a join.
+
+
+https://habr.com/ru/post/326138/
